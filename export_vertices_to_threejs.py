@@ -3,11 +3,11 @@ import json
 import os
 
 bl_info = {
-    "name": "Export Vertices To JS",
+    "name": "Export Vertices To THREE.JS",
     "author": "Class Outside",
     "version": (1, 0),
     "blender": (2, 80, 0),
-    "description": "Exports vertices to a JavaScript file.",
+    "description": "Exports vertices to Vector3 in a JavaScript file.",
     "warning": "",
     "doc_url": "",
     "category": "Add Mesh",
@@ -54,15 +54,15 @@ def export_vertices(filepath, use_selection, closed):
     for obj in selected_objects:
         if obj.type == 'MESH':
             for vertex in obj.data.vertices:
-                point = {
-                    "x": vertex.co.x,
-                    "y": vertex.co.z,  # Swap y and z axes
-                    "z": -vertex.co.y  # Swap y and z axes - Times negative one to face proper direction
-                }
-                points.append(point)
+                x = vertex.co.x
+                y = vertex.co.z 
+                z = -vertex.co.y
+                points.append(f"new THREE.Vector3({x}, {y}, {z})")
 
-    # Convert the list to a JavaScript module format
-    js_content = f"export const data = {json.dumps(points, indent=4)};\n"
+    js_content = "import * as THREE from 'three';\n"
+    js_content += "export const curve = [\n"
+    js_content += ",\n".join(f"    {p}" for p in points)
+    js_content += "\n];\n"
     js_content += f"export const closed = {str(closed).lower()};\n"
 
     # Change the file extension to .js
@@ -70,7 +70,6 @@ def export_vertices(filepath, use_selection, closed):
 
     with open(filepath, 'w') as file:
         file.write(js_content)
-
 def draw_error_message(self, context):
     self.layout.label(text="Please select only one object to export.")
 
